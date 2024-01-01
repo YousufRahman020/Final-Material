@@ -1,0 +1,379 @@
+
+======================================================================================================
+
+
+=> Installing and checking Apache2 and ssh:
+
+sudo apt install apache2
+sudo systemctl status apache2
+sudo apt install openssh-server
+sudo apt install openssh-client
+sudo systemctl status ssh
+
+
+
+
+======================================================================================================
+
+
+
+
+=> Basic Linux Commands:
+
+1. pwd (present working directory)
+2. mkdir <directory_name> (creating a new directory) 
+3. rmdir <directory_name> (removing a directory)
+4. ls (list contents of directory)
+5. ls -la (list all contents including hidden files in directory)
+6. cd <directory_name> (change directory)
+7. touch <file_name> (create empty file)
+8. cat <file_name> (display contents of file)
+9. cat > <file_name> (write anything in file)
+10. rm <file_name> (remove file)
+11. cp <existing_file_name> <new_file_name> (copy contents of one file to another)
+12. mv <file_name> <directory_path> (move file/directory from one place to another)
+13. head <file_name> (displays starting 10 lines of file)
+14. tail <file_name> (displays last 10 lines of file)
+15. tac <file_name> (reverse of cat command, displays content in reverse order)
+16. rename 's/old-name/new-name/' files (used for renaming large number of files, example: rename 's/\.txt$/\.pdf/' *.txt)
+17. ls -la | grep "file_name" (search for file/directory in current directory)
+18. find . -name "file_name" (search for file) 
+19. which ssh (seaech for binary command)
+20. ip --brief addr show
+21. touch file-{2..10}.txt (creates 9 different files)
+22. free (Check free RAM)
+23. top (Check CPU usage)
+24. df -H (Disc Storage)
+
+
+
+
+======================================================================================================
+
+
+
+=> Linux User Commands:
+
+1. su <user_name> (provides administrative access to another user/switch user)
+2. id (displays user id and group id)
+3. whoami (check current user)
+4. useradd <user_name> (creates and add user in linux server)
+5. useradd -m -d /home/username <user_name> (creates user home directory)
+5. passwd <user_name> (create and change password for user)
+6. grep <user_name> /etc/passwd (check for user name in passwd file to ensure if user is created or not)
+7. sudo usermod -a -G sudo <user_name> (grant sudo permission to new user)
+8. userdel -r <user_name> (delete user with its home directory if exists)
+9. groupadd <group_name> (creates a new group)
+10. gpasswd <group_name> (create and change password for group)
+11. sudo usermod -a -G <group_name> <user_name> (add a user to group)
+12. sudo nano /etc/group (remove user you want to remove from a group by removing username from this file)
+13. groupdel <group_name> (deletes group)
+
+
+
+
+
+======================================================================================================
+
+
+
+=> For Checking new connection in remote server, log into remote server then:
+
+$ cd /var/log
+$ tail -f auth.log
+
+Whenever new connection get established, we will see changings in this file.
+
+
+
+
+======================================================================================================
+
+
+
+=> Setting up ssh connection:
+
+Currently in ~/.ssh folder.
+$ ssh -i "pem file" username@ip_address (Connecting to AWS)
+$ ssh username@ip_address (Connecting to different server/pc)
+
+In above method we have to remember username and ip address, and then have to type whenever we want to connect to the server. 
+To make this process short and easy we will generate config file.
+In config file we can save details of many server and can access them only by there name.
+
+$ nano config
+Host any_name
+	Hostname ip_address
+	Port 22
+	User user_name
+
+Host variable2
+	Hostname ip_address
+	User user_name
+	IdentityFile root_to_pem_file
+
+$ ssh any_name (this command will log us into the server)
+
+But this will still require password to enter, which if any hacker guesses, he can have access to our server. To make it more secure we will generate keys.
+
+$ ssh key-gen
+
+Copy contents of public key (ending with .pub)
+Move to remote server
+
+$ cd .ssh
+$ nano authorized_keys (paste public key here)
+
+Now if we log into remote server, we wont required password to enter, because the public key we pasted there is linked with our private key here.
+
+$ ssh-copy-id -i ~/.ssh/id_rsa.pub user_name@ip_address (This will do everything in one command, generate key then copy key in remote server everything)
+
+$ ssh-keygen -t ed25519 -C "comment"  (This will generate key of ed25519 type, more secure key type)
+
+$ ssh -i ~/.ssh/GIKI_id_ed25519 username@ip_address 
+$ ssh -i /home/yousuf/.ssh/GIKI_id_ed25519 ubuntu@ec2-13-49-222-83.eu-north-1.compute.amazonaws.com
+
+It will ask for passphrase, if we write any while generating key. Everytime we log in we have to enter passphrase. 
+In order to save our passphrase in our memory. we will use ssh-agent.
+It will save the key in the memory, until we close the terminal.
+
+$ ps aux | grep ssh-agent (Will see whether ssh-agent is working or not)
+$ eval "$(ssh-agent)" (Will make ssh agent work on backgorund)
+$ ssh-add private_key_location (Will give key to ssh agent, to store in memory, so that we dont want to add passphrase everytime)
+
+Robust Solution: Disable password authentication, Create a key, add key to each of your servers, run ssh agent in background.
+
+$ scp -r /home/yousuf ip_address:/tmp (Copying tmp file from ip_address to user)
+
+Coping file from local computer to server:
+
+$ scp -i "pem_file" file_name username@ip_address:destination_location
+$ scp -i "AWS-key.pem" local_file.txt ubuntu@ec2-13-49-222-83.eu-north-1.compute.amazonaws.com:/home/ubuntu/
+
+Coping file from server to local computer:
+
+$ scp -i "pem_file" username@ip_address:file_location destination_folder(.)
+sudo scp -i "AWS-key.pem" ubuntu@ec2-13-49-222-83.eu-north-1.compute.amazonaws.com:/home/ubuntu/local_file.txt .
+
+
+
+======================================================================================================
+
+
+
+=> Bash Scripting:
+
+Executes commands through bash file.
+
+$ which bash
+$ vim file_name.sh  (Write commands inside this bash file)(First line of file must be #!usr/bin/bash)
+
+press i
+#!usr/bin/bash (shebang interperator)
+
+name="Yousuf" (creating variable)
+#echo "Hello World"
+#echo $BASH (predefined_variable)
+echo "Hello ${name} $1, please enter your age: " ($name will fetch name variable and $1 will fetch first argument passed to file)
+read age
+sleep 2 (sleep for 2 seconds)
+echo "Your Age: ${age}"
+
+press esc
+:wq then enter
+
+$ chmod 777 file_name.sh
+$ bash file_name.sh
+$ ./file_name.sh Arguments_if_any(Executes bash file, but make sure execute permission is given to the file)
+
+
+$ vim if_else.sh
+
+#!usr/bin/bash
+
+if [ "$1" = "Yousuf"]
+then
+	echo "Hello Boss"
+elif [ "$1" = "Rahman"]
+then
+	echo "Hello Super Boss!"
+else
+	echo "Hello Unknown User"
+fi
+
+
+$ chmod 777 if_else.sh
+$./if_else Yousuf
+
+$ vim elif.sh
+
+#!usr/bin/bash
+
+a=100
+b=200
+c=300
+
+if [[ $a -gt $b && $a -gt $c ]]
+then
+	echo "A is big"
+elif [[ $b -gt $a && $b -gt $c ]]
+	echo "B is Big"
+else
+	echo "C is big"
+fi
+
+
+$ vim case_statement.sh
+
+#!usr/bin/bash
+
+case "$1" in:
+	Yousuf) echo "Hello Boss";;
+	Rahman) echo "Hello Grand Boss";;
+	*) echo "Hello Unknown Person";;
+esac
+
+$ chmod 777 case_statement.sh
+$./case_statement Rahman
+
+
+#!usr/bin/bash
+
+for ((i=0; i<10; i++))
+do
+	echo "$i"
+done
+
+#!usr/bin/bash
+
+for item in ${MY_FIRST_LIST[@]};
+do 
+	echo -n $item | wc -c;
+done
+
+for FILE in *.txt
+do
+	echo $FILE
+done
+
+#!usr/bin/bash
+
+add_user()
+{
+USER=$1
+PASS=$2
+
+useradd -m -p $PASS $USER && "Successfully Added User"
+
+}
+
+#MAIN
+
+add_user Yousuf_Rahman test@123
+
+cat ~/etc/passwd (Check all users)
+
+
+$ vim backup.sh
+
+#!usr/bin/bash
+
+src_dir=/home/ubuntu/scripts
+tgt_dir=/home/ubuntu/backups
+
+curr_timestamp=$(date "+%Y-%m-%d-%H-%M-%S")
+backup_file=$tgt_dir/$curr_timestamp.tgz
+
+echo "Taking backup on $curr_timestamp"
+
+tar czf $backup_file --absolute-names $src_dir
+
+echo "Backup Complete"
+
+$ cd backups
+$ cd ls
+$ tar xf file_name
+
+
+
+======================================================================================================
+
+
+=> Advanced Scripting: (Check_disk_space.sh Script)
+
+$ df -H | awk '{print $1 " " $5}' (Will print Disc filesystem and use%)
+
+$ vim disk_check.sh
+
+#!usr/bin/bash
+
+alert=90
+df -H | awk '{print $1 " " $5}' | while read output;
+do
+	# echo "Disk detail: $output;
+	usage=$(echo $output | awk '{print $1}' | cut -d'%' -f1)
+	filesystem=$(echo $output | awk '{print $2}')
+	#echo $usage
+	if [ $usage -ge $alert ]
+	then
+		echo "Critical for $filesystem"
+	fi
+done
+
+
+======================================================================================================
+
+
+=> Crontab:
+
+Its located at /etc/crontab
+
+Minute(0-59) Hour(0-23) day_of_month(1-31) month(1-12) day_of_week(0-6) 
+
+$ cat /etc/crontab
+$ crontab -l (Check if any cronjob is running or not)
+$ crontab -e (Create new crontab)
+
+50 4 * * * echo "This is my first cron job" > /home/ubuntu/test_cron_first.txt
+
+* * * * * bash /home/ubuntu/check_disk.sh >> /home/ubuntu/check_disk_logs.txt
+
+
+
+
+======================================================================================================
+
+
+
+=> Git:
+
+$ sudo apt-get install git-all
+$ git init (Initialized empty Git repository in /home/yousuf/.git/)
+$ git config --global user.name "Yousuf Rahman"
+$ git config --global user.email "u2020520@giki.edu.pk"
+$ git config --list
+$ git log
+$ git touch file1 file2
+$ git add file1
+
+# whenever we will add file we will commit
+
+$ git commit -m "Commit1"
+$ echo "Message1" > file1
+$ git add file1
+$ git status
+$ git commit -m "Commit2"
+
+$ git clone github_url (ssh)
+$ cat (public_key)
+
+$ cat config
+$ cd .ssh
+$ touch config
+$ nano config
+
+Host github.com
+	HostName github.com
+	IdentityFile location_of_private_key
+
+$ git --help
