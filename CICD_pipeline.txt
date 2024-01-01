@@ -1,0 +1,26 @@
+
+sudo apt install nodejs
+
+npm install
+
+node index.js
+
+npm create vite@latest App_name
+
+cd App
+
+npm install
+
+npm run dev
+
+npm run build
+
+
+
+1. npm i
+2. npm run build
+3. npm run dev / npm run start
+
+Docker file:
+1. sudo docker build -t image_name:latest .
+2. sudo docker run -p 80:8000 --name container_name image_name

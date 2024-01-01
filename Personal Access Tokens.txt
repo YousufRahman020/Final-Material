@@ -1,0 +1,7 @@
+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  =  Practicing Git and Github
+
+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 = Local Repo
+
+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 = CICD
+
+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 = Devops-Assignment2
